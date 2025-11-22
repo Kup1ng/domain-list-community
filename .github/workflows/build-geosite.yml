@@ -1,0 +1,34 @@
+name: Build custom geosite.dat
+
+on:
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          path: code
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: code/go.mod
+          cache-dependency-path: code/go.sum
+
+      - name: Build dlc.dat file (custom)
+        run: |
+          cd code || exit 1
+          # اینجا اگر خواستی لیست‌ها رو عوض کنی، exportlists رو هم ادیت کن
+          go run ./ --outputdir=../
+          cd ../ && mv dlc.dat geosite.dat && rm -rf code
+
+      - name: Upload geosite.dat as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: geosite-dat
+          path: geosite.dat
