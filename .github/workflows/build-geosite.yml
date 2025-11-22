@@ -1,15 +1,16 @@
-name: Build custom geosite.dat
+name: Build & release geosite.dat
 
 on:
-
+  # دستی از تب Actions اجرا می‌کنی
   workflow_dispatch:
 
 jobs:
   build:
+    name: Build geosite.dat and create release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout codebase
         uses: actions/checkout@v6
         with:
           path: code
@@ -20,15 +21,32 @@ jobs:
           go-version-file: code/go.mod
           cache-dependency-path: code/go.sum
 
-      - name: Build dlc.dat file (custom)
+      - name: Set variables
+        run: |
+          echo "RELEASE_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "TAG_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build geosite.dat file
         run: |
           cd code || exit 1
+          # اینجا اگر خواستی می‌تونی فلگ‌ها رو عوض کنی
+          # مثلا: go run ./ --outputdir=../ --exportlists=...
           go run ./ --outputdir=../
-          cd ../ && mv dlc.dat geosite.dat && rm -rf code
+          cd ../
+          mv dlc.dat geosite.dat
+          rm -rf code
 
-      - name: Upload geosite.dat as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: geosite-dat
-          path: geosite.dat
-          compression-level: 0
+      - name: Generate geosite.dat sha256 hash
+        run: |
+          sha256sum geosite.dat > geosite.dat.sha256sum
+
+      - name: Create GitHub Release and upload assets
+        run: |
+          gh release create "${{ env.TAG_NAME }}" \
+            --generate-notes \
+            --latest \
+            --title "${{ env.RELEASE_NAME }}" \
+            ./geosite.dat ./geosite.dat.sha256sum
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
