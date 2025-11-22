@@ -1,0 +1,8 @@
+include:openai
+include:google-gemini
+include:spotify
+include:category-dev
+
+full:meta.com
+full:meta.ai
+full:freepik.com
