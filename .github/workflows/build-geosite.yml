@@ -23,7 +23,6 @@ jobs:
       - name: Build dlc.dat file (custom)
         run: |
           cd code || exit 1
-          # اینجا اگر خواستی لیست‌ها رو عوض کنی، exportlists رو هم ادیت کن
           go run ./ --outputdir=../
           cd ../ && mv dlc.dat geosite.dat && rm -rf code
 
