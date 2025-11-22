@@ -12,14 +12,12 @@ jobs:
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v6
-        with:
-          path: code
 
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: code/go.mod
-          cache-dependency-path: code/go.sum
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
 
       - name: Set variables
         run: |
@@ -29,17 +27,14 @@ jobs:
 
       - name: Build geosite.dat file
         run: |
-          cd code || exit 1
-          # اینجا اگر خواستی می‌تونی فلگ‌ها رو عوض کنی
-          # مثلا: go run ./ --outputdir=../ --exportlists=...
-          go run ./ --outputdir=../
-          cd ../
-          mv dlc.dat geosite.dat
-          rm -rf code
+          # همین ریشه‌ی ریپو هستیم، اینجا .git هم وجود داره
+          mkdir -p build
+          go run ./ --outputdir=./build
+          mv build/dlc.dat build/geosite.dat
 
       - name: Generate geosite.dat sha256 hash
         run: |
-          sha256sum geosite.dat > geosite.dat.sha256sum
+          sha256sum build/geosite.dat > build/geosite.dat.sha256sum
 
       - name: Create GitHub Release and upload assets
         run: |
@@ -47,6 +42,6 @@ jobs:
             --generate-notes \
             --latest \
             --title "${{ env.RELEASE_NAME }}" \
-            ./geosite.dat ./geosite.dat.sha256sum
+            build/geosite.dat build/geosite.dat.sha256sum
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
