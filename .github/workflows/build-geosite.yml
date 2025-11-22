@@ -31,3 +31,4 @@ jobs:
         with:
           name: geosite-dat
           path: geosite.dat
+          compression-level: 0
